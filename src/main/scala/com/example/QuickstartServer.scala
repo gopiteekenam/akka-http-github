@@ -15,10 +15,9 @@ import com.typesafe.config.ConfigFactory
 import org.apache.kafka.clients.producer.ProducerRecord
 import org.apache.kafka.common.serialization.StringSerializer
 
-import scala.concurrent.duration.Duration
+import scala.concurrent.duration.{Duration, _}
 import scala.concurrent.{Await, ExecutionContext, Future}
 import scala.util.{Failure, Success}
-import concurrent.duration._
 
 
 //#main-class
@@ -39,12 +38,12 @@ object QuickstartServer extends App with UserRoutes {
   // from the UserRoutes trait
   lazy val routes: Route = userRoutes
   //#main-class
-  val subUri = "/users/gopiteekenam"
+  val subUri = "/users/mojombo"
 
-  val config = ConfigFactory.load()
+  val appconfig = ConfigFactory.load()
 
   val serviceUrl = {
-    config.getString("services.git-api.host")
+    appconfig.getString("services.git-api.host")
   }
 
   val httpClient = Http().outgoingConnectionHttps(host = serviceUrl)
@@ -61,11 +60,11 @@ object QuickstartServer extends App with UserRoutes {
       val result = Await.result(future, 15 seconds)
       val end = System.currentTimeMillis()
       println(res)
-//      val config = ConfigFactory.load.getConfig("akka.kafka.producer")
+      val config = ConfigFactory.load.getConfig("akka.kafka.producer")
 
       val producerSettings =
         ProducerSettings(config, new StringSerializer, new StringSerializer)
-          .withBootstrapServers(config.getString("kafka.bootstrap.url"))
+          .withBootstrapServers(appconfig.getString("akka.kafka.bootstrap.url"))
 
 
       val producerSink: Future[Done] =
