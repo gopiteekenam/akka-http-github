@@ -1,14 +1,19 @@
 package com.example
 
 //#quick-start-server
+import akka.Done
 import akka.actor.{ActorRef, ActorSystem}
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.model.{HttpRequest, Uri}
 import akka.http.scaladsl.server.Route
 import akka.http.scaladsl.unmarshalling.Unmarshal
+import akka.kafka.ProducerSettings
+import akka.kafka.scaladsl.Producer
 import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.{Sink, Source}
 import com.typesafe.config.ConfigFactory
+import org.apache.kafka.clients.producer.ProducerRecord
+import org.apache.kafka.common.serialization.StringSerializer
 
 import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, ExecutionContext, Future}
@@ -34,10 +39,11 @@ object QuickstartServer extends App with UserRoutes {
   // from the UserRoutes trait
   lazy val routes: Route = userRoutes
   //#main-class
-  val subUri = "/users/mojombo"
+  val subUri = "/users/gopiteekenam"
+
+  val config = ConfigFactory.load()
 
   val serviceUrl = {
-    val config = ConfigFactory.load()
     config.getString("services.git-api.host")
   }
 
@@ -55,6 +61,19 @@ object QuickstartServer extends App with UserRoutes {
       val result = Await.result(future, 15 seconds)
       val end = System.currentTimeMillis()
       println(res)
+//      val config = ConfigFactory.load.getConfig("akka.kafka.producer")
+
+      val producerSettings =
+        ProducerSettings(config, new StringSerializer, new StringSerializer)
+          .withBootstrapServers(config.getString("kafka.bootstrap.url"))
+
+
+      val producerSink: Future[Done] =
+        Source(1 to 10)
+          .map(_.toString)
+          .map(value => new ProducerRecord[String, String]("test", "Record:: " + res))
+          .runWith(Producer.plainSink(producerSettings))
+      println("************ Message produced ************")
       system.terminate()
     case Failure(e) =>
       Console.err.println(s"Server could not start!")

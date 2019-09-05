@@ -1,0 +1,49 @@
+warning: LF will be replaced by CRLF in src/main/scala/com/example/QuickstartServer.scala.
+The file will have its original line endings in your working directory
+[1mdiff --git a/src/main/scala/com/example/QuickstartServer.scala b/src/main/scala/com/example/QuickstartServer.scala[m
+[1mindex 015873b..fd7bc83 100644[m
+[1m--- a/src/main/scala/com/example/QuickstartServer.scala[m
+[1m+++ b/src/main/scala/com/example/QuickstartServer.scala[m
+[36m@@ -8,10 +8,12 @@[m [mimport akka.http.scaladsl.server.Route[m
+ import akka.http.scaladsl.unmarshalling.Unmarshal[m
+ import akka.stream.ActorMaterializer[m
+ import akka.stream.scaladsl.{Sink, Source}[m
+[32m+[m[32mimport com.typesafe.config.ConfigFactory[m
+ [m
+ import scala.concurrent.duration.Duration[m
+ import scala.concurrent.{Await, ExecutionContext, Future}[m
+ import scala.util.{Failure, Success}[m
+[32m+[m[32mimport concurrent.duration._[m
+ [m
+ [m
+ //#main-class[m
+[36m@@ -34,9 +36,12 @@[m [mobject QuickstartServer extends App with UserRoutes {[m
+   //#main-class[m
+   val subUri = "/users/mojombo"[m
+ [m
+[32m+[m[32m  val serviceUrl = {[m
+[32m+[m[32m    val config = ConfigFactory.load()[m
+[32m+[m[32m    config.getString("services.git-api.host")[m
+[32m+[m[32m  }[m
+ [m
+[31m-[m
+[31m-  val httpClient = Http().outgoingConnectionHttps(host = "api.github.com")[m
+[32m+[m[32m  val httpClient = Http().outgoingConnectionHttps(host = serviceUrl)[m
+   val future: Future[User] =[m
+     Source.single(HttpRequest(uri = Uri(subUri)))[m
+     .via(httpClient)[m
+[36m@@ -44,7 +49,13 @@[m [mobject QuickstartServer extends App with UserRoutes {[m
+     .runWith(Sink.head)[m
+ [m
+   future.onComplete {[m
+[31m-    case Success(res) => println(res)[m
+[32m+[m[32m    case Success(res) =>[m
+[32m+[m
+[32m+[m[32m      val start = System.currentTimeMillis()[m
+[32m+[m[32m      val result = Await.result(future, 15 seconds)[m
+[32m+[m[32m      val end = System.currentTimeMillis()[m
+[32m+[m[32m      println(res)[m
+[32m+[m[32m      system.terminate()[m
+     case Failure(e) =>[m
+       Console.err.println(s"Server could not start!")[m
+       e.printStackTrace()[m
