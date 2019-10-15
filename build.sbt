@@ -26,8 +26,9 @@ lazy val root = (project in file(".")).
       "io.kamon"          %% "kamon-logback"        % "1.0.6",
       "com.sksamuel.avro4s" %% "avro4s-core" % "1.6.2",
       "org.apache.kafka" %% "kafka" % kafkaVersion,
-      "io.confluent" % "kafka-avro-serializer" % "3.0.1"
-
+      "io.confluent" % "kafka-avro-serializer" % "3.0.1",
+      "org.apache.kafka" % "connect-json" % "0.9.0.0",
+      "com.fasterxml.jackson.module" %% "jackson-module-scala" % "2.10.0"
 
     )
     
